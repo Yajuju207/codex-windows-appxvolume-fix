@@ -106,6 +106,18 @@ This symptom family is already tracked in OpenAI's Codex repository:
 - [openai/codex#32589](https://github.com/openai/codex/issues/32589) — EFS `copyfile UNKNOWN / -4094` breaks bundled marketplace and Computer Use native pipe.
 - [Our AppxVolume workaround report on #34764](https://github.com/openai/codex/issues/34764#issuecomment-5251587580).
 
+## Independent reproduction
+
+On 2026-08-22, another reporter on `openai/codex#34764` independently reproduced the same non-system AppxVolume failure pattern on Windows 11 build `26200.9168` with Codex package `26.818.4152.0`.
+
+Before moving the package, Codex was registered on `D:\WindowsApps` (`IsSystemVolume=False`). The reporter observed 25–50+ minute startup delays, repeated `Not Responding` states, `CopyFileW / uv_fs_copyfile` hangs, Procmon `ACCESS DENIED` results taking roughly 20 seconds while staging `cua_node\...\bin\corepack`, and repeated incomplete `.staging-*` runtime directories.
+
+After moving only the `OpenAI.Codex` package to the system C: AppxVolume with Windows' built-in `Move-AppxPackage`, the runtime materialized successfully, `corepack` was deployed with a non-zero size, the first launch became usable in roughly 10–15 seconds, and a second clean launch was fully usable within about 15 seconds without the prior freezes.
+
+This is independent before/after evidence supporting the AppxVolume diagnosis and the same mitigation described by this repository.
+
+- [Independent reproduction and mitigation report](https://github.com/openai/codex/issues/34764#issuecomment-5379844462)
+
 ## Safety
 
 The scripts in this repository deliberately avoid the more invasive workarounds seen in some troubleshooting threads. They do **not**:
